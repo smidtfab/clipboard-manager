@@ -1,5 +1,6 @@
 from tkinter import Tk, Frame, BOTH, Menu, TclError, Label, RAISED, SUNKEN, SOLID, messagebox
 import pyperclip
+from pynput import keyboard
 
 class Clippy(Frame):
     def __init__(self, parent=None):
@@ -17,7 +18,17 @@ class Clippy(Frame):
         self.labelArray = []
         self.debug = False
 
+        self.current_modifiers = set()
+        self.initHotKeys()
+
         self.initMenu()
+
+    def initHotKeys(self):
+        self.COMBINATIONS = [
+            {keyboard.Key.shift, keyboard.Key.alt_l, keyboard.KeyCode(char='1')},
+            {keyboard.Key.shift, keyboard.Key.alt_l, keyboard.KeyCode(char='2')},
+            {keyboard.Key.shift, keyboard.Key.alt_l, keyboard.KeyCode(char='3')}
+        ]
 
     def initDefaultValues(self):
         self.clipboardContent = set()
@@ -141,6 +152,27 @@ class Clippy(Frame):
             self.parent.attributes("-topmost", 1)
         else:
             self.parent.attributes("-topmost", 0)
+    def executeHotkey(self, key_combo):
+        print (key_combo)
+
+    def on_press(self, key):
+        if self.debug:
+            print('onPress')
+        if any([key in COMBO for COMBO in self.COMBINATIONS]):
+            self.current_modifiers.add(key)
+            if any(all(k in self.current_modifiers for k in COMBO) for COMBO in self.COMBINATIONS):
+                self.executeHotkey(key)
+
+    def on_release(self, key):
+        if self.debug:
+            print ("onRelease")
+        if any([key in COMBO for COMBO in self.COMBINATIONS]):
+            self.current_modifiers.remove(key)
+    
+    #with keyboard.Listener(on_press=on_press, on_release=on_release) as listener:
+    #    listener.join()
+
+
 
 if __name__ == '__main__':
     root = Tk()
